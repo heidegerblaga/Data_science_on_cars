@@ -1,4 +1,4 @@
-from sqlalchemy import Integer,String,Boolean,Column,Date,ForeignKey
+from sqlalchemy import BigInteger,String,Boolean,Column,Date,ForeignKey
 from psql import engine
 from sqlalchemy.orm import sessionmaker,relationship
 from sqlalchemy.ext.declarative import declarative_base
@@ -19,7 +19,7 @@ class Cars(Base):
 
     __tablename__="cars"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(BigInteger, primary_key=True)
     cena = Column(String)
     oferta_od = Column(String)
     marka_pojazdu = Column(String)
@@ -41,10 +41,10 @@ class Cars(Base):
     kolor = Column(String)
     kraj = Column(String)
     pierwsza_rej = Column(String)
-    liczba_drzwi = Column(String)
-    zarejstrowany_w_pol = Column(String)
+    zarejestrowany_w_pol = Column(String)
     stan = Column(String)
-    status = Column(String)
+    bezwypadkowy = Column(String)
+    pierwszy_wlasciciel =  Column(String)
     # musisz jeszcze pododawać rzeczy ze statusu pojazdu
 
 

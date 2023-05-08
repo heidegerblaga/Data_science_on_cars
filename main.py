@@ -8,8 +8,15 @@ def print_hi(name):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    url = "https://www.otomoto.pl/osobowe?page=2&search%5Badvanced_search_expanded%5D=true"
-    page = int(re.findall(r'\d+',str(re.findall(r'page=\d',url)))[0]) + 1
-    print(page)
+
+     mymap = {}
+
+
+     try:
+        x = mymap['test']
+     except:
+        x =1
+
+     print(x)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
