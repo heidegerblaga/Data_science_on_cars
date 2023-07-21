@@ -10,7 +10,9 @@ import multiprocessing
 
 faster = ["https://www.otomoto.pl/osobowe?page="+str(page)+"&search%5Badvanced_search_expanded%5D=true" for page in range(2,6000) ]
 
+# Dodawanie do bazy danych informacji z konkretnego ogłoszenia
 def det(link,ID):
+
 
      existing_record = session.query(Cars).filter_by(id=ID).first()
 
@@ -66,7 +68,7 @@ def det(link,ID):
 
 
 
-
+# pobieranie listy ofert i przejscie do kolejnej strony po ich zaladowaniu
 def offerlist(url):
 
      page = get(url)
@@ -74,7 +76,10 @@ def offerlist(url):
 
      # id ogloszenia
 
-     ID = list(map(lambda x: int(x.split("data-id=")[1].split("\"")[1]), re.findall(r'data-id=["\w]+', str(bs.findAll(class_="ooa-dmrg7i evg565y0")))))
+     ID = list(map(lambda x: int(x.split("data-id=")[1].split("\"")[1]), re.findall(r'data-id=["\w]+', str(bs.findAll(class_="ooa-1ukhrp5 evg565y0")))))
+
+
+
 
      # link do oferty
      linki = re.findall(r'https://www.otomoto.pl/[-\w\d/.]+', str(bs.findAll(target="_self")))
@@ -84,9 +89,12 @@ def offerlist(url):
 
             try:
 
-             wyniki = pool.starmap(det, zip(linki,ID))
+
+             pool.starmap(det, zip(linki,ID))
+
 
             except:
+
               pass
 
 
