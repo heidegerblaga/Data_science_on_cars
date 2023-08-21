@@ -1,46 +1,56 @@
 import pandas as pd
 import numpy as np
-import tensorflow as tf
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense
-import pickle
+from tensorflow.keras.layers import Dense, Dropout
+from sklearn.metrics import mean_squared_error
+from sklearn.preprocessing import StandardScaler
 
-# Odczytanie DataFrame z pliku pickle
-nazwa_pliku = 'cars.pickle'
-cars = pd.read_pickle(nazwa_pliku)
+scaler = StandardScaler()
 
-# Przygotowanie danych treningowych z DataFrame
-X = cars[['id_generacja', 'id_kolor', 'id_kraj', 'id_marki', 'id_nadwozia', 'id_naped',
-          'id_paliwo', 'id_pierwszy_wlasciciel', 'id_polska', 'id_skrzynia', 'id_stan']].values
-Y = cars['cena'].values
 
-# Tworzenie modelu sieci neuronowej
+# Wczytanie danych
+cars = pd.read_pickle('cars.pickle')  # Zastąp 'dane.csv' nazwą swojego pliku danych
+cars = cars[cars['marka']==65]
+cars['przebieg'] = scaler.fit_transform(cars[['przebieg']])
+cars['cena'] = scaler.fit_transform(cars[['cena']])
+
+
+target = cars['cena']
+features = cars.drop({'cena','id'}, axis=1)
+
+# Podział danych na zbiór treningowy i testowy
+X_train, X_test, y_train, y_test = train_test_split(features, target, test_size=0.2, random_state=42)
+
+# Standaryzacja danych
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Budowa modelu
 model = Sequential()
-model.add(Dense(16, activation='relu', input_shape=(11,)))
-model.add(Dense(8, activation='relu'))
-model.add(Dense(1))
+model.add(Dense(64, activation='relu', input_shape=(X_train_scaled.shape[1],)))
+model.add(Dropout(0.2))  # Dropout dla regularyzacji
+model.add(Dense(32, activation='relu'))
+model.add(Dropout(0.2))
+model.add(Dense(1))  # Warstwa wyjściowa dla regresji
 
-# Kompilacja modelu
-model.compile(optimizer='adam', loss='mse')
+model.compile(optimizer='adam', loss='mean_squared_error')
 
-# Trenowanie modelu (zakładam, że masz dane do trenowania, w tym przypadku pomijam trenowanie)
-# model.fit(X, Y, epochs=10, batch_size=1)
+# Trenowanie modelu
+model.fit(X_train_scaled, y_train, epochs=1000, batch_size=32, validation_split=0.2, verbose=1)
 
-nazwa_pliku_modelu = 'model.pickle'
+# Ocena modelu na zbiorze testowym
+y_pred = model.predict(X_test_scaled)
+mse = mean_squared_error(y_test, y_pred)
+print('Mean Squared Error on Test Data:', mse)
 
-# Zapisanie modelu do pliku pickle
-with open(nazwa_pliku_modelu, 'wb') as plik:
-    pickle.dump(model, plik)
-
-# Odczytanie modelu z pliku pickle
-with open(nazwa_pliku_modelu, 'rb') as plik:
-    wczytany_model = pickle.load(plik)
-
-# Przygotowanie danych do przewidywania - zamień słownik na tablicę numpy
-nowe_dane = np.array([[388, 10, 18, 3, 2, 6, 3, 2, 1, 2, 1]])
+nowe_dane = np.array([[1.471000, 2006, 2993, 231, 11, 4, 65, 2, 336, 1, 9, 483, 3, 2, 3, 2, 3, 1]])
 
 # Przewidywanie wartości za pomocą wczytanego modelu
-predykcje = wczytany_model.predict(nowe_dane)
+predykcje = model.predict(np.array([[1.471000, 2006, 2993, 231, 11, 4, 65, 2, 336, 1, 9, 483, 3, 2, 3, 2, 3, 1]])
+)
 
 print("Przewidywane ceny dla nowych danych:")
 print(predykcje)
