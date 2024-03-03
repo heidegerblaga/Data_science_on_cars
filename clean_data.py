@@ -12,6 +12,10 @@ query = "SELECT * FROM numcars"
 
 cars = pd.read_sql(query,conn)
 
+mask = ~cars['cena'].str.contains(r' EUR')
+
+cars = cars[mask]
+
 
 cars['cena'] = cars['cena'].str.replace('EUR', '').str.replace(' ', '').str.replace(',', '.').astype(float) #kurs euro
 
@@ -42,7 +46,7 @@ cars['przebieg'] = cars['przebieg'].astype(float)
 cars = cars[(cars != 0).all(axis=1)].reset_index(drop=True)
 
 
-print(cars)
+
 
 
 nazwa_pliku = 'cars.pickle'
