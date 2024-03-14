@@ -4,14 +4,21 @@ import re
 from models import (Base, session, Cars, engine)
 import multiprocessing
 
+import pandas as pd
+
+
 
 
 
 faster = ["https://www.otomoto.pl/osobowe?page="+str(page)+"&search%5Badvanced_search_expanded%5D=true" for page in range(2,6000)]
 
 # Dodawanie do bazy danych informacji z konkretnego ogłoszenia
-def det(link, ID):
+def det(link):
 
+
+    page = get(link)
+    bs = BeautifulSoup(page.content, 'html.parser')
+    marka = bs.find_all(class_="ooa-162vy3d e18eslyg3")
 
     mymap = {"Oferta od": " ", "Marka pojazdu": " ", "Model pojazdu": " ",
              "Typ nadwozia": " ", "Generacja": " ", "Kolor": " ", "Rodzaj koloru": " ",
@@ -25,20 +32,22 @@ def det(link, ID):
              "Okres gwarancji producenta": " ", "Pokaż oferty z numerem VIN": " ", "Możliwość finansowania": " ",
              "Leasing": " "}
 
-
-    page = get(link)
-
-    bs = BeautifulSoup(page.content, 'html.parser')
-
-    marka = bs.find_all(class_="ooa-162vy3d e18eslyg3")
-
     for info in marka:
+
 
         for key in mymap:
 
             if bool(re.search(f"{key}", info.get_text())):
                 new = re.sub(f"{key}", r"", info.get_text())
                 mymap[key] = new
+
+    print(mymap)
+
+
+
+
+
+    ID = bs.find(class_="ooa-1neiy54 edazosu6").get_text()[3:].strip()
 
 
 
@@ -66,57 +75,44 @@ def det(link, ID):
 # pobieranie listy ofert i przejscie do kolejnej strony po ich zaladowaniu
 def offerlist(url):
 
-     page = get(url)
-     bs = BeautifulSoup(page.content, 'html.parser')
-
-     # id ogloszenia
-
-     ID = list(map(lambda x: x.split("data-id=")[1].split("\"")[1], re.findall(r'data-id=["\d]+', str(bs.findAll(class_="ooa-yca59n e1oqyyyi0")))))
+    page = get(url)
+    bs = BeautifulSoup(page.content, 'html.parser')
 
 
 
-
-     # link do oferty
-     linki = re.findall(r'https://www.otomoto.pl/[-\w\d/.]+', str(bs.findAll(target="_self")))
-     print(ID)
-     with multiprocessing.Pool() as pool:
-
-         try:
-
-             pool.starmap(det, zip(linki, ID))
+    # link do oferty
+    linki = re.findall(r'https://www.otomoto.pl/[-\w\d/.]+', str(bs.findAll(target="_self")))
 
 
-         except:
+    i = 0
+    for link in linki:
+        det(link)
 
-             pass
+    print(url)
 
-     if url == "https://www.otomoto.pl/osobowe" :
+    if url == "https://www.otomoto.pl/osobowe":
 
-          url = "https://www.otomoto.pl/osobowe?page=2"
+        url = "https://www.otomoto.pl/osobowe?page=2"
 
-     else :
+    else:
 
-          print(url)
-          page = str(int(re.findall(r'\d+', str(re.findall(r'page=\d+', url)))[0]) + 1)
+        print(url)
+        page = str(int(re.findall(r'\d+', str(re.findall(r'page=\d+', url)))[0]) + 1)
 
-          url = "https://www.otomoto.pl/osobowe?page="+page
+        url = "https://www.otomoto.pl/osobowe?page=" + page
 
-
-
-     offerlist(url)
+    offerlist(url)
 
 
 if __name__=='__main__':
 
-   page = get("https://www.otomoto.pl/osobowe")
+    page = get("https://www.otomoto.pl/osobowe")
 
-   bs = BeautifulSoup(page.content, 'html.parser')
+    bs = BeautifulSoup(page.content, 'html.parser')
 
-   ID = re.findall(r'data-id=["\d]+', str(bs.findAll(class_="ooa-yca59n e1oqyyyi0")))
 
-   print(f"HALO {ID}")
 
-   offerlist("https://www.otomoto.pl/osobowe")
+    offerlist("https://www.otomoto.pl/osobowe")
 
 
 
